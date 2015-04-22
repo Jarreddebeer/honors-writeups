@@ -1,0 +1,82 @@
+\documentclass[prodmode,acmtecs]{acmsmall}
+\usepackage[ruled]{algorithm2e}
+
+\acmYear{2015}
+\acmMonth{4}
+
+\begin{document}
+\title{The Performance Characteristics of Astronomical Source Finders}
+\author{YASEEN HAMDULAY
+\affil {University of Cape Town}
+}
+
+\begin{abstract}
+MeerKAT and ASKAP will run the biggest Hydrogen surveys ever completed. Our current source
+finders will be unable to cope with such large surveys. We will look at different source
+finding algorithms and techniques for accelerating them.
+\end{abstract}
+\keywords{Source Finding, Astronomy, GPU}
+
+\acmformat{Yaseen Hamdulay, 2015. The Performance Characteristics of Astronomical Source Finders}
+
+\maketitle
+
+\section{Introduction}
+Discuss MeerKAT, ASKAP and the performance issues expected with these larger Hydrogen surveys.
+\cite{holwerda2010trumpeting}
+\cite{whiting2012source}
+\cite{floer2014source}
+
+\section{Comparison of Existing Source Finding Algorithms}
+ \cite{westerlund2012assessing}
+ \cite{popping2012comparison}
+
+    \subsection{CNHI}
+Characterises noise with no parameterization.
+    \cite{jurek2012characterised}
+
+    \subsection{2D-1D Wavelet Reconstruction}
+    \cite{floer20122d}
+
+    \subsection{Smooth and Clip Filter}
+\cite{serra2012atlas3d}
+
+    \subsection{Parallel Gaussian}
+This algorithm is already GPU'ified. Discuss it's mechanism and performance characteristics.
+        \cite{westerlund2014framework}
+
+\section{Source Finding Platforms}
+    \subsection{Duchamp}
+Most well-known source finder. Makes use of a thresholding algorithm
+        \cite{whiting2012duchamp}
+    \subsection{SoFiA}
+Newer source-finder written mostly in Python that implements most
+existing source-finding algorithms.
+        \cite{serra2015sofia}
+
+\section{Acceleration Techniques}
+    \subsection{Multi-core CPU}
+Discuss current attempts to make use of parallelism on the CPU to improve performance
+and it's limitations.
+        \cite{westerlund2014framework}
+        \cite{scott}
+
+    "Acceleration of the noise suppression component of the DUCHAMP source-finder."
+    \subsection{GPU}
+Talk about already GPU'ified source-finding algorithms and the fact that athis needs
+to be repeated for all source-finding algorithms (this is our niche).
+    \cite{laidler2013detection}
+    \cite{hassan2011unleashing}
+
+\section{Existing Accelerated Source Finders}
+Discuss \cite{westerlund2015performance} and the algorithm they use.
+
+\section{Conclusions}
+Acceleration of source finding algorithms is necessary before ASKAP and MeerKAT becomes
+available. We hope that GPU'ification of these algorithms will allow us to handle the
+data coming from the new telescopes.
+
+\bibliographystyle{ACM-Reference-Format-Journals}
+\bibliography{structure}
+
+\end{document}
