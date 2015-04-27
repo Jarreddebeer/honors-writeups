@@ -22,18 +22,19 @@ finding algorithms and techniques for accelerating them.
 
 \section{Introduction}
 Source finding within blind Hydrogen surveys is a computationally intensive but important process.
-We are currently able to perform source finding on our current hydrogen surveys within reasonable
-time frames. We do not expect our current source finding tools to be able to deal with data coming from
-upcoming Radio Telescopes. 
+We are currently able to perform source finding on existing hydrogen surveys in less time than it takes
+to record the data. However we do not expect our current source finding tools to be able to do this with
+data coming from upcoming Radio Telescopes. 
 
-The Australian Square Kilometre Array Pathfinder and MeerKAT is expected to come online
-late 2017. ASKAP is expected to produce approximately 80 terabytes of data per 8 hours of 
+The Australian Square Kilometre Array Pathfinder and MeerKAT is expected to begin observations in the latter
+half of 2017. ASKAP is expected to produce approximately 80 terabytes of data per 8 hours of 
 observation time. \cite{whiting2012source} ran a much smaller cube of 24GB on the Epic supercomputing
 cluster with 9600 cores and it took between a few minutes and a few hours depending on the
 type of search. At this rate of processing ASKAP's expected workload will take days to months. 
 
-We have seen in \cite{fluke2011astrophysical} that replacing CPU's with GPU's in Astronomy applications
-can drastically decrease the execution time of source finding algorithms.
+We have seen in \cite{fluke2011astrophysical}\cite{westerlund2015performance} that replacing CPU's with GPU's in Astronomy applications
+can drastically decrease the execution time of astronomical calculations but more specifically
+source finding algorithms.
 
 This paper compares the available source finding algorithms and techniques that could be used to speed
 them up for future large hydrogen surveys. 
@@ -42,66 +43,71 @@ them up for future large hydrogen surveys.
 \cite{floer2014source}
 
 \section{Comparison of Existing Source Finding Algorithms}
+    Source finders operate on a data cube as input which consists of two spatial dimensions
+    and one spectral dimension. Sources are sparse within the data cube with the rest
+    dominated by noise. \cite{walsh2012maser}
 
-    Two important metrics used to describe source finding algorithms are completeness and 
-    reliability. We want a source finder to have high reliability and high completeness.
-    Since we care about accelerating these algorithms complexity and existing 
-    acceleration attempts are important.
+    There are two important metrics used to describe source finding algorithms, completeness and 
+    reliability. \cite{popping2012comparison}
 
     Completeness is defined as the ratio of sources found by the source finder
     in a given data cube to the number of actual sources within the data cube. This means that
-    for a given source in a datacube a high completeness ratio means that the source finder is 
+    for a given source in a data cube a high completeness ratio means that the source finder is 
     very likely to detect this source and low completeness means that it could be overlooked.
 
     Reliability
-    is the ratio of true positive source detections to the number of total detections. This is another
-    way of saying that if the reliability of a source finder is low and the source finder says that a certain
-    pixel is a source then this 
+    is the ratio of true positive source detections to the number of total detections. High reliability
+    implies that a source finder will detect the majority of sources that exist within a data cube. 
 
-%    The flux density of a source is the sum of the intensities of all the detections / voxels 
-%    that contribute to the source. A source of low flux is generally much further away and harder
-%    to distinguish from noise.
+    The flux density of a source is the sum of the intensities of all the detections or voxels 
+    that contribute to the source. A source of low flux is generally much further away and harder
+    to distinguish from noise.
+
+    We want a source finder to have high reliability and high completeness.
+    Since we care about accelerating these algorithms, their complexity and existing 
+    acceleration attempts are important to consider.
+
+    
+We will now compare these characteristics of different source finding algorithms.
 
  \cite{westerlund2012assessing}
  \cite{popping2012comparison}
 
     \subsection{2D-1D Wavelet Reconstruction}
-    This source finding algorithm functions by performing a transformation similar to a Fourier
+    This source finding algorithm by Floer and Winkel functions by performing a transformation similar to a Fourier
     transformation called a wavelet transformation. This transformation finds coefficients $w_j(x)$
     so that we can decompose our original data $D(X)$ in the following way:
 
     $$D(x) = c_J(x) + \sum\limits_{j=1}^J w_j(x)$$
     
     We can find these coefficients efficiently with the ``algorithm \`{a} trous''. We
-    use this decomposition to denoise by removing all $w_j(x)$ coefficients where $$w_j(x) < 5\text{ std. deviation}\{w_1, \ldots, w_n\}$$
+    use this decomposition to denoise by removing all $w_j(x)$ coefficients where
+ $$w_j(x) < 5\text{ std. deviation}\{w_1, \ldots, w_n\}$$
     This works because the signal is sparse in the data. For most efficacy we can repeat this
     process a few times. We then reconstruct the signal and do intensity thresholding on the resultant
-    datacube sans noise. 
+    data cube sans noise. 
     
     The completeness of this finder at low flux is close to 0\% 
     to almost 100\% completeness at high flux with almost as good performance as Duchamp. When using
     this source finder an alternative source finder should be used to detect sources at low flux. 
-    Duchamp is superior in completeness and reliability to 2D-1D wavelet reconstruction across all flux values. 
+    Duchamp is superior in completeness and reliability to 2D-1D wavelet reconstruction across all flux values. \cite{popping2012comparison}
     
     It is noted that since the wavelet transformation of each spectral line is independent they
     can be done in parallel. The memory use of this algorithm is $O(N_1 N_2 N_3 J_1 J_2)$ where $N_i$
-    are the datacube dimensions and $J_i$ are the scales considered on each dimension. This is more
+    are the data cube dimensions and $J_i$ are the scales considered on each dimension. This is more
     memory than required by the other source finders which could make it slow or difficult on a memory
     constrained platform such as a GPU. 
     
     \cite{floer20122d}
 
-    \subsection{Smooth and Cut Filter}
-\cite{serra2012atlas3d}
- 
      \subsection{CNHI}
-     The Characterised Noise $H_1$ Source Finder is unique in function. Most other 
+     The Characterised Noise $H_1$ Source Finder is unique in function and has an innovative conceptual framework. Most other 
     source finders looked at the structure of the expected source and
-     removed everything that didn't look like a source with the assumption that it is noise.
+     removed everything that did not look like a source with the assumption that it is noise.
      This limits the finder to sources whose structure we understand and goes against the 
      philosophy of a blind survey. 
      CNHI does the inverse of this. It characterises noise and removes everything that
-     looks like noise. 
+     looks like noise. \cite{jurek2012characterised}
      
      This is an improvement over thresholding techniques that allegedly become more inaccurate
      as the resolution of radio telescopes increases. The inaccuracy is due to faint sources
@@ -111,70 +117,74 @@ them up for future large hydrogen surveys.
      The CHNI algorithm works by applying the Kuiper test to a spectral line and find sections 
      that look different from the rest of the spectral line (using the assumption that the
      observation is dominated by noise). Overlapping sections are removed by choosing the 
-     section with largest Kuiper test value, this will be the section of lowest probability
+     section with the largest Kuiper test value; the chosen section will have the lowest probability
      of being noise. The Kuiper test is then applied to these sections at multiple scales to
      find the galaxies within these sections. Objects immediately adjacent to each other
      are combined into a single object with the Lutz one-pass algorithm.
      
-     Unfortunately the performance of CHNI is poor across all flux levels in comparison to the
-     other source finders. The output of CNHI has many false positives and low completeness. 
+     Despite the innovative conceptual framework the performance of CHNI is poor across all
+     flux levels in comparison to the other source finders. The output of CNHI has many 
+     false positives and low completeness. \cite{popping2012comparison}
      
      \subsection{Duchamp}
 Duchamp is primarily a thresholding source finder. Duchamp goes through four main phases during source finding.
-Noise removal, searching, merging and parametrisation. For noise removal the user can either smooth
-via convolution with a kernel or use wavelet construction in a manner very similar to the 2D-1D wavelet
-reconstruction. The searching is done by considering each channel as a plane and running the two dimensional
-Lutz algorithm which scans each horizontal row and joins close objects. Once we have searched the entire
+Noise removal, searching, merging and parametrisation. For noise removal the user can either smooth the data
+via convolution with a kernel or use wavelet construction in a manner very similar to 2D-1D wavelet
+reconstruction discussed above. The searching is done by considering each channel as a plane and running the two dimensional
+Lutz algorithm which scans each horizontal row and joins close objects \cite{lutz1980algorithm}. Once we have searched the entire
 space we combine all objects that are within a user defined distance from each other. Every objects position
-and flux values are calculated and added to the catalog.
+and flux values are calculated and added to the output catalog. \cite{whiting2012duchamp}
 
 
 The Duchamp source finding strategy  is the most reliable and complete of all strategies tested 
-by \cite{popping2012comparison}. This makes it an ideal candidate for acceleration as it would
+by Popping et al. This makes it an ideal candidate for acceleration as it would
 be the most useful for use by large future hydrogen surveys. 
-     \cite{jurek2012characterised}
 
     \subsection{Summary}
-\begin{tabular}{|l | l | l | l | l| }
-  \hline
-  Name  & Completeness & Reliability & Parallelism \\
-  \hline
-  \hline
-  Duchamp  & High & High & Multi-core CPU \\
-  \hline
-  CNHI  & Low & Low & Single thread \\
-  \hline
-  2D-1D wavelet reconstruction & Medium & Medium & Single thread \\
-  \hline
-  Parallel Gaussian  & unknown & unknown & GPU and CPU \\
-  \hline
-\end{tabular}
+\begin{table}[h!]
+    \begin{tabular}{|l | l | l | l | l| }
+    \hline
+    Name  & Completeness & Reliability & Parallelism \\
+    \hline
+    \hline
+    Duchamp  & High & High & Multi-core CPU \\
+    \hline
+    CNHI  & Low & Low & Single thread \\
+    \hline
+    2D-1D wavelet reconstruction & Medium & Medium & Single thread \\
+    \hline
+    Parallel Gaussian  & unknown & unknown & GPU and CPU \\
+    \hline
+    \end{tabular}
+\caption{A table comparing the characteristics of various Source Finders}
+\end{table}
 \section{Source Finding Platforms}
     \subsection{Duchamp}
-Duchamp is the most well-known source finder. It's written entirely in C++ and primarily uses
+Duchamp is the most well-known source finding platform. It is written entirely in C++ and primarily uses
 thresholding with various noise filtering schemes. The choice of noise filtering and thresholding
 value is defined by the user at runtime.  
         \cite{whiting2012duchamp}
 
-Duchamp in it's current state runs on a single CPU core. There have been multiple attempts to run
-parts of the Duchamp pipeline over multiple CPU cores \cite{scott} \cite{whiting2012source}. \cite{scott} 
- successfully sped
-up the \`{a} trous noise suppression algorithm, which was the greatest contributor to the 
+Duchamp in its current state runs on a single CPU core. There have been multiple attempts to run
+parts of the Duchamp pipeline over multiple CPU cores \cite{scott} \cite{whiting2012source}. Badenhorst et al 
+ successfully sped up the \`{a} trous noise suppression algorithm, which was the greatest contributor to the 
 execution time, by 13x with eight threads on a quad-core CPU.
 This speed up came with a 6x memory usage penalty. They found that with the speed up in the noise
-suppresion the execution time is now dominated by the statistics section of the pipeline. Finally,
+suppression the execution time is now dominated by the statistics section of the pipeline. Finally,
 they note that a CPU-GPU interaction has the potential to dramatically increase performance.
 
 Selavy \cite{whiting2012source} is a distributed version of Duchamp that runs across multiple CPU
-\cite{} cores.
+\cite{} cores across multiple hosts. It too accelerated the noise suppression algorithm. 
+It was designed to run on a cluster of nodes each with 8 - 12
+CPU cores where the entire data cube is unable to fit onto a single node. 
 
 
     \subsection{SoFiA}
     SoFiA is a modern flexible source finder framework that implements three different source finders
-    and filters. It's written in Python and C++. It's much newer than both Duchamp and SSoFF. 
+    and filters. SoFia is written in Python and C++ and is much newer than both Duchamp and SSoFF. 
     SoFiA's main advantage is its variety of source finders and filters.  
     SoFiA loads entire data cube into memory when performing source finding which will not scale to ASKAP
-    and MeerKAT data sizes. Modifications need to be made in order to temporarily store parts of the datacube
+    and MeerKAT data sizes. Modifications need to be made in order to temporarily store parts of the data cube
     on disk.
         \cite{serra2015sofia}
         
@@ -214,6 +224,18 @@ a CPU algorithm to a GPU is often not possible or will give bad results. It is n
 assumptions and see if they apply to the GPU. 
 
     \cite{laidler2013detection}
+    
+\begin{table}[h!]
+
+    \begin{tabular}{ |l|l|l|l| }
+    \hline
+    Name & Implementation time & Speedup \\
+    Single threaded CPU & Easy & 1x \\
+    Mult-threaded CPU & Easy & 1x - 5x  \\
+    GPU & Difficult & 2x - 50x  \\
+    \end{tabular}
+    \caption{Comparison of acceleration methods}
+\end{table}
 
 \section{Existing Accelerated Source Finders}
 The filtering portion of the Parallel Gaussian Source finder \cite{westerlund2015performance}
@@ -224,7 +246,7 @@ source finder that has not been done by this study.
 
 5 - 10\% of execution time is spent copying data from the Host onto the GPU. This can be reduced by streaming
 data into the GPU and have it process the data as it arrives instead of waiting for the entire
-data cube to be copied. Another large contributor is the statistics functions. This wasn't such
+data cube to be copied. Another large contributor is the statistics functions. This was not such
 a large contributor before the filter was parallelised but now dominates the execution time,
 this is the next candidate for parallelisation. 
 
@@ -234,15 +256,17 @@ This occurs because more and more of the data per node is dominated by ``halo da
 
 
 \section{Conclusions}
-Acceleration of source finding algorithms is necessary before ASKAP and MeerKAT becomes
-available. We hope that GPU'ification of these algorithms will allow us to handle the
-data coming from the new telescopes.
+We have seen that porting serial code to a Graphics Processing Unit can give multiple order of magnitude speedups in
+execution time. Porting a source finder would move us closer to our goal of performing source Finding
+on future ASKAP and SKA data. We have seen an example of this by the GPU version of the Parallel
+Gaussian Source Filter.
 
-Porting an algorithm to run on a GPU is a high cost but high payoff technique to accelerate an algorithm. 
-We have seen from the Parallel Gaussian Source Filter that the speedup from porting can be substantial. 
+Despite there already existing an accelerated GPU source finder it is still necessary to port 
+more source finders as each have very different completeness and reliability characteristics. 
 
-Duchamp appears to be the most useful platform and algorithm to attempt to accelerate. 
-
+After analysing the various source finders we conclude that Duchamp is the best candidate for 
+GPU acceleration due to its completeness, reliability and its maturity.
+ 
 \bibliographystyle{ACM-Reference-Format-Journals}
 \bibliography{litreview}
 
