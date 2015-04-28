@@ -36,9 +36,10 @@ cluster with 9600 cores and it took between a few minutes and a few hours depend
 type of search. At this rate of processing ASKAP's expected workload will take days to months. 
 
 Previous attempts at reducing execution time involved converting from single threaded code
-to multi-threaded code across multiple CPU cores. \cite{scott} 
+to multi-threaded code across multiple CPU cores. \cite{scott} This gave really good results
+but not enough to handle MeerKAT and ASKAP loads.
 
-We are reaching the end of Moore's law for single cores. In order to continue scaling performance
+We are reaching the end of Moore's law for single cores. In order to continue improve overall performance
 the number of concurrent threads are increasing to compensate for decreasing gains in single
 threaded performance \cite{michalakes2008gpu}. GPU's are the embodiment of this philosophy
 and can have hundreds of arithmetic cores. 
@@ -141,7 +142,7 @@ source finding algorithms.
      
      \subsection{Duchamp}
 Duchamp is primarily a thresholding source finder. Duchamp goes through four main phases during source finding.
-Noise removal, searching, merging and parameterisation. For noise removal the user can either smooth the data
+Noise removal, searching, merging and parameterisation. During the noise removal step the user can either smooth the data
 via convolution with a kernel or use wavelet construction in a manner very similar to 2D-1D wavelet
 reconstruction discussed above. The searching is done by considering each channel as a plane and running the two dimensional
 Lutz algorithm which scans each horizontal row and joins close objects \cite{lutz1980algorithm}. Once we have searched the entire
@@ -150,7 +151,7 @@ and flux values are calculated and added to the output catalogue. \cite{whiting2
 
 
 The Duchamp source finding strategy  is the most reliable and complete of all strategies tested 
-by Popping et al. This makes it an ideal candidate for acceleration as it would
+by Popping et al. This makes it an ideal candidate for acceleration as it could
 be the most useful for use by large future hydrogen surveys. 
 
 \subsection{Gamma Finder}
@@ -163,21 +164,10 @@ running the Gamma test over the data with varying smoothing widths giving varyin
 \cite{boyce2003gammafinder}
 
 According to \cite{popping2012comparison} the Gamma finder does not perform well with broad galaxies
-despite the modification mentioned above. However they were unable to do a completeness or reliability
-study as the Gamma test does not merge nearby sources.
+despite the modification mentioned above. The completeness of the Gamma finder almost reaches that of Duchamp consistently over various flux values. 
+This can be seen in figure 1 below. Unfortunately the reliability is not as good as its completeness. 
+The realiability can be as low as 12\% for certain inputs. 
 
-The completeness of the Gamma finder almost reaches that of Duchamp consistently over various flux values. 
-This can be seen in figure 1 below. Unfortunately the reliability is not as good as its completeness. According
-to Popping et al the realiability can be as low as 12\% for certain inputs. 
-
-\subsection{Discussion}
-Duchamp is a clear winner out of the source finders tested. CNHI had an interesting conceptual framework 
-but did not perform as well as expected despite the theoretical problems it solved. 2D-1D wavelet
-reconstruction performed almost as well as Duchamp. This is likely due to Duchamp using wavelet deconstruction
-as one of its noise removal procedures. The Gamma finder has really high completeness but disappointingly
-low reliability. This is not a very good result. A source finder that reports all points on the cube as sources will
-have 100\% completeness and 0\% reliability which is almost as bad as the performance of Gamma finder.
-    
 \begin{center}A table comparing the characteristics of various Source Finders \cite{popping2012comparison} \end{center}
     \begin{tabular}{|l | l | l | l | }
     \hline
@@ -246,9 +236,9 @@ of this framework in both the multi-core CPU and GPU variations.
     \subsection{Multi-core CPU}
     Acceleration using multiple CPU cores is much easier than porting to GPU and happens more often as the techniques
     and technology has been around for longer. {\cite{fluke2011astrophysical}
-    Writing multi core CPU code can be as simple as adding a compiler directive for OpenMP\cite{cavuoti2014astrophysical}.
+    Writing multi-core CPU code can be as simple as adding a compiler directive for OpenMP\cite{cavuoti2014astrophysical}.
 
-    The parallelism gained by multi core CPU acceleration can be used to gauge the potiential speedups
+    The parallelism gained by multi-core CPU acceleration can be used to gauge the potiential speedups
     to be gained by implementing an algorithm on the GPU. If we cannot get a speedup by running
     on multiple CPU cores we are highly unlikely to get a speedup by porting to a GPU. 
     
@@ -260,6 +250,10 @@ Graphics Processing Units are highly parallel processors that have a large amoun
 arithmetic processing units when compared to CPU's which is dominated by control units
 and cache memory. This is suited to computations done by astronomers with many reporting 
 10 - 100x speed ups in their computations. \cite{hassan2011unleashing} 
+
+An important metric to consider when doing source finding on MeerKAT data is recognising that
+MeerKAT is in the desert with very little access to power. GPU's give the highest flops per watt
+ratio making it a very useful tool for this problem.
 
 However this does not come for free, coding on a GPU takes more time and is more complex than on a CPU. 
 
@@ -309,6 +303,17 @@ this is the next candidate for parallelisation.
 As the data cube is split over more nodes we get diminishing returns of performance increases.
 This occurs because more and more of the data per node is dominated by ``halo data''.
 
+\section{Discussion}
+CNHI had an interesting conceptual framework 
+but did not perform as well as expected despite the theoretical problems it solved. 2D-1D wavelet
+reconstruction performed almost as well as Duchamp. This is likely due to Duchamp using wavelet deconstruction
+as one of its noise removal procedures. The Gamma finder has really high completeness but disappointingly
+low reliability. This is not a very good result. A source finder that reports all points on the cube as sources will
+have 100\% completeness and 0\% reliability which is almost as bad as the performance of Gamma finder.
+
+Duchamp is a clear winner out of the source finders tested.    
+It has also been proven to parallelise well by the CPU parallelism attempts. This will hopefully 
+make GPU parallelism easier. 
 
 \section{Conclusions}
 We have seen that porting serial code to a Graphics Processing Unit can give multiple order of magnitude speedups in
