@@ -3,3 +3,6 @@
 *.aux
 *.bbl
 *.blg
+_region_.tex
+auto/*
+*/auto
