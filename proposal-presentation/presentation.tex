@@ -158,9 +158,39 @@ with data cube at one end and the parameterised sources at the other.
 }
 
 \subsection{Jarred (SoFia, Smooth and Clip Filter)}
+
 \frame{\frametitle{Jarred, SoFia: Smooth and Clip filter}
 }
 
+\frame{\frametitle{SoFiA}
+    \begin{itemize}
+        \item Developed for use on various ASKAP surveys
+        \item Designed to be general purpose
+        \item Modular and extensible
+        \item User specifies which parameters and algorithms to be run
+        \item Available on Github, released GPLv3
+    \end{itemize}
+}
+
+\frame{\frametitle{SoFiA pipeline}
+    \begin{figure}
+        \includegraphics[scale=.3]{sofia-pipeline}
+        \caption{DUCHAMP pipeline}
+    \end{figure}
+}
+
+\frame{\frametitle{Smooth and Clip}
+    \begin{itemize}
+        \item Developed by Serra et al. (2012)
+        \item Searches for emission at multiple frequency resolutions
+        \item User specifies the 3D kernels to use
+        \item For example:\\
+            Smooth the sky with a Gaussian filter\\
+            Smooth the velocity separately with a box filter of 2, 4, 8, 16, and 32 channels.
+        \item Create a mask for each filter with voxels above an absolute threshold
+        \item Final mask is union of all masks
+    \end{itemize}
+}
 
 \section{Related Work}
 \frame{\frametitle{Related Work}
