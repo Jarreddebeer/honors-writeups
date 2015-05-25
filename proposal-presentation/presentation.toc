@@ -1,10 +1,11 @@
 \beamer@endinputifotherversion {3.26pt}
-\beamer@sectionintoc {2}{Introduction}{3}{0}{1}
-\beamer@subsectionintoc {2}{1}{Source Finding}{3}{0}{1}
-\beamer@subsectionintoc {2}{2}{GPU}{7}{0}{1}
-\beamer@sectionintoc {3}{Work Distribution}{8}{0}{2}
-\beamer@sectionintoc {4}{Source Finders}{9}{0}{3}
-\beamer@subsectionintoc {4}{1}{Yaseen (DUCHAMP)}{9}{0}{3}
-\beamer@subsectionintoc {4}{2}{Jarred (SoFia, Smooth and Clip Filter)}{11}{0}{3}
-\beamer@sectionintoc {5}{Related Work}{12}{0}{4}
-\beamer@sectionintoc {6}{Testing}{13}{0}{5}
+\beamer@sectionintoc {2}{Introduction}{5}{0}{1}
+\beamer@subsectionintoc {2}{1}{Source Finding}{5}{0}{1}
+\beamer@subsectionintoc {2}{2}{Research Questions}{7}{0}{1}
+\beamer@subsectionintoc {2}{3}{GPU}{8}{0}{1}
+\beamer@sectionintoc {3}{Work Distribution}{10}{0}{2}
+\beamer@sectionintoc {4}{Source Finders}{11}{0}{3}
+\beamer@subsectionintoc {4}{1}{Yaseen (DUCHAMP)}{11}{0}{3}
+\beamer@subsectionintoc {4}{2}{Jarred (SoFia, Smooth and Clip Filter)}{16}{0}{3}
+\beamer@sectionintoc {5}{Related Work}{17}{0}{4}
+\beamer@sectionintoc {6}{Evaluation}{18}{0}{5}
